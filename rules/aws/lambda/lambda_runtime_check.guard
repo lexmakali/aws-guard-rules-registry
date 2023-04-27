@@ -1,0 +1,40 @@
+#
+#####################################
+##           Gherkin               ##
+#####################################
+# Rule Identifier:
+#    LAMBDA_FUNCTION_PUBLIC_ACCESS_PROHIBITED
+#
+# Description:
+#    Checks if the AWS Lambda function uses recommended language runtime
+#
+# Reports on:
+#    AWS::Lambda::Function
+#
+# Evaluates:
+#    AWS CloudFormation
+#
+# Rule Parameters:
+#    NA
+#
+# Scenarios:
+# a) SKIP: when no AWS Lambda functions are present
+# b) PASS: when all AWS Lambda functions use python3.10 runtime
+# c) FAIL: when any AWS Lambda permission does not use python3.10 runtime
+
+#
+# Select all AWS Lambda Function resources from incoming template (payload)
+#
+let lambda_functions = Resources.*[
+	Type == "AWS::Lambda::Function"
+]
+
+rule lambda_obsolete_runtime when %lambda_functions !empty {
+	%lambda_functions {
+		Properties {
+			when Runtime exists {
+				Runtime !in ["python3.10"] <<Lambda function is using an obsolete runtime.>>
+			}
+		}
+	}
+}

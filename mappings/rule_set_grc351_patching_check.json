@@ -1,0 +1,15 @@
+{
+  "owner": "AWS",
+  "ruleSetName": "PCI-DSS-3-2-1",
+  "version": "1.0.0",
+  "description" : "AWS Guard rule set to check compliance with patching requirements",
+  "contact" : "aws-guard-rules-registry@amazon.com",
+  "mappings": [
+    {
+      "guardFilePath": "rules/aws/lambda/lambda_runtime_check.guard",
+      "controls": [
+        "1.2"
+      ]
+    }
+  ]
+}
