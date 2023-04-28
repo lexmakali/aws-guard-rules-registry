@@ -1,21 +1,21 @@
 ###
-# LAMBDA_DLQ_CHECK tests
+# LAMBDA_RUNTIME_CHECK tests
 ###
 ---
 - name: Empty, SKIP
   input: {}
   expectations:
     rules:
-      LAMBDA_DLQ_CHECK: SKIP
+      LAMBDA_RUNTIME_CHECK: SKIP
 
 - name: No resources, SKIP
   input:
     Resources: {}
   expectations:
     rules:
-      LAMBDA_DLQ_CHECK: SKIP
+      LAMBDA_RUNTIME_CHECK: SKIP
 
-- name: AWS Lambda Function dead-letter queue set, PASS
+- name: AWS Lambda Function no runtime specified, SKIP
   input:
     Resources:
       ExampleLambda-1:
@@ -27,9 +27,34 @@
             S3Key: function.zip
           DeadLetterConfig: 
             TargetArn: arn:aws:sqs:us-east-2:123456789012:dlq
-      ExampleLambda-2:
+  expectations:
+    rules:
+      LAMBDA_RUNTIME_CHECK: SKIP
+
+- name: AWS Lambda Function updated runtime, PASS
+  input:
+    Resources:
+      ExampleLambda-1:
         Type: "AWS::Lambda::Function"
         Properties: 
+          Runtime: python3.10
+          Role: arn:aws:iam::123456789012:role/lambda-role
+          Code:
+            S3Bucket: my-bucket
+            S3Key: function.zip
+          DeadLetterConfig: 
+            TargetArn: arn:aws:sqs:us-east-2:123456789012:dlq
+  expectations:
+    rules:
+      LAMBDA_RUNTIME_CHECK: PASS
+
+- name: AWS Lambda Function NOT updated runtime, FAIL
+  input:
+    Resources:
+      ExampleLambda-1:
+        Type: "AWS::Lambda::Function"
+        Properties: 
+          Runtime: nodejs6.10
           Role: arn:aws:iam::123456789012:role/lambda-role
           Code:
             S3Bucket: my-bucket
@@ -38,45 +63,4 @@
             TargetArn: arn:aws:sqs:us-east-2:123456789012:dlq
   expectations:
     rules:
-      LAMBDA_DLQ_CHECK: PASS
-
-- name: AWS Lambda Function dead-letter queue NOT set, FAIL
-  input:
-    Resources:
-      ExampleLambda-1:
-        Type: "AWS::Lambda::Function"
-        Properties: 
-          Role: arn:aws:iam::123456789012:role/lambda-role
-          Code:
-            S3Bucket: my-bucket
-            S3Key: function.zip
-          DeadLetterConfig:
-            TargetArn: arn:aws:sqs:us-east-2:123456789012:dlq
-      ExampleLambda-2:
-        Type: "AWS::Lambda::Function"
-        Properties: 
-          Role: arn:aws:iam::123456789012:role/lambda-role
-          Code:
-            S3Bucket: my-bucket
-            S3Key: function.zip
-  expectations:
-    rules:
-      LAMBDA_DLQ_CHECK: FAIL
-
-- name: AWS Lambda Function dead-letter queue NOT set but rule suppressed, SKIP
-  input:
-    Resources:
-      ExampleLambda-1:
-        Type: "AWS::Lambda::Function"
-        Metadata:
-          guard:
-            SuppressedRules:
-            - LAMBDA_DLQ_CHECK
-        Properties: 
-          Role: arn:aws:iam::123456789012:role/lambda-role
-          Code:
-            S3Bucket: my-bucket
-            S3Key: function.zip
-  expectations:
-    rules:
-      LAMBDA_DLQ_CHECK: SKIP
+      LAMBDA_RUNTIME_CHECK: FAIL

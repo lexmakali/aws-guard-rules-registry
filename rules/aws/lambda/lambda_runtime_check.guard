@@ -3,7 +3,7 @@
 ##           Gherkin               ##
 #####################################
 # Rule Identifier:
-#    LAMBDA_FUNCTION_PUBLIC_ACCESS_PROHIBITED
+#    LAMBDA_RUNTIME_CHECK
 #
 # Description:
 #    Checks if the AWS Lambda function uses recommended language runtime
@@ -12,7 +12,7 @@
 #    AWS::Lambda::Function
 #
 # Evaluates:
-#    AWS CloudFormation
+#    AWS CloudFormation,  AWS CloudFormation Hook
 #
 # Rule Parameters:
 #    NA
@@ -29,11 +29,11 @@ let lambda_functions = Resources.*[
 	Type == "AWS::Lambda::Function"
 ]
 
-rule lambda_obsolete_runtime when %lambda_functions !empty {
+rule LAMBDA_RUNTIME_CHECK when %lambda_functions !empty {
 	%lambda_functions {
 		Properties {
 			when Runtime exists {
-				Runtime !in ["python3.10"] <<Lambda function is using an obsolete runtime.>>
+				Runtime in ["python3.10"] <<Lambda function is using an obsolete runtime.>>
 			}
 		}
 	}
